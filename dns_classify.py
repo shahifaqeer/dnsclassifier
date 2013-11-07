@@ -85,6 +85,7 @@ class DNSClassify (EventMixin):
     core.Interactive.variables['lookup'] = self.lookup
 
   def _handle_ConnectionUp (self, event):
+    # TODO put another event here for normal packets-get IP:DNS:TYPE?
     if self._install_flow:
       msg = of.ofp_flow_mod()
       msg.match = of.ofp_match()
@@ -136,7 +137,8 @@ class DNSClassify (EventMixin):
 
     return modified
 
-  def _handle_PacketIn (self, event):
+  def _handle_PacketIn (self, events):
+    # TODO continue IP:DNS:TYPE event?
     p = event.parsed.find('dns')
 
     if p is not None and p.parsed:
