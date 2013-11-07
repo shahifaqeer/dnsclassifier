@@ -1,0 +1,8 @@
+DNS Classifier
+
+dns_response_parser:
+- Parses a DNS response packet to create ARECORD and CNAME tables
+- Requires domain:application mapping file
+
+ip_to_application_mapping:
+- For any input IP address, spits out domain name and application
