@@ -85,7 +85,6 @@ class DNSClassify (EventMixin):
     core.Interactive.variables['lookup'] = self.lookup
 
   def _handle_ConnectionUp (self, event):
-    # TODO put another event here for normal packets-get IP:DNS:TYPE?
     if self._install_flow:
       msg = of.ofp_flow_mod()
       msg.match = of.ofp_match()
@@ -97,6 +96,7 @@ class DNSClassify (EventMixin):
 
   def lookup (self, something):
     """get IP:DNS or DNS:IP"""
+    # TODO: We also need to expire DNS entries using TTL values later
     if something in self.name_to_ip:
       return self.name_to_ip[something]
     if something in self.cname:
@@ -108,6 +108,7 @@ class DNSClassify (EventMixin):
 
   def getType (self, name):
     """for domain name return type"""
+    # TODO: Implement regex based lookups
     try:
         return self.name_to_type[name]
     except:
