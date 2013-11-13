@@ -33,6 +33,8 @@ mappings are updated.
 Similar to NOX's DNSSpy component, but with more features.
 """
 import pickle as pkl
+import re
+from collections import defaultdict
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
 import pox.lib.packet as pkt
@@ -95,7 +97,10 @@ class DNSClassify (EventMixin):
       event.connection.send(msg)
 
   def lookup (self, something):
-    """get IP:DNS or DNS:IP"""
+    """get IP:DNS or DNS:IP
+
+    call lookup(IP) to get dnsname
+    then call getType(dnsname) to get type"""
     # TODO: We also need to expire DNS entries using TTL values later
     if something in self.name_to_ip:
       return self.name_to_ip[something]
@@ -107,12 +112,25 @@ class DNSClassify (EventMixin):
       return None
 
   def getType (self, name):
-    """for domain name return type"""
-    # TODO: Implement regex based lookups
-    try:
-        return self.name_to_type[name]
-    except:
-        return None
+    """for domain name return type
+
+    domain names are huge, but name_to_type table has shorter name
+    so, iterate over all keys in name_to_type searching for a pattern
+    in name.
+
+    all matching types are counted and the type with max_votes is chosen."""
+
+    types_poll = defaultdict(int)
+    types_poll['UNKNOWN'] = 0
+
+    for key in self.name_to_type.keys():
+        pattern=key
+        matches=re.match(pattern, name)
+        if matches != None:
+            # if match is found, increment counter of that TYPE
+            types_poll[self.name_to_type[key]]+=1
+
+    return max(types_poll, key=types_poll.get)
 
   def _record (self, ip, name):
     # Handle reverse lookups correctly?
