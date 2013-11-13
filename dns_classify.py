@@ -123,12 +123,15 @@ class DNSClassify (EventMixin):
     types_poll = defaultdict(int)
     types_poll['UNKNOWN'] = 0
 
-    for key in self.name_to_type.keys():
-        pattern=key
-        matches=re.match(pattern, name)
-        if matches != None:
-            # if match is found, increment counter of that TYPE
-            types_poll[self.name_to_type[key]]+=1
+    for key, value in self.name_to_type.item():
+        if key in name:
+            types_poll[value] += 1
+
+        #pattern=key
+        #matches=re.match(pattern, name)
+        #if matches != None:
+        #    # if match is found, increment counter of that TYPE
+        #    types_poll[self.name_to_type[key]]+=1
 
     return max(types_poll, key=types_poll.get)
 
