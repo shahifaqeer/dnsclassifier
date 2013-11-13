@@ -33,7 +33,7 @@ mappings are updated.
 Similar to NOX's DNSSpy component, but with more features.
 """
 import pickle as pkl
-import re
+#import re
 from collections import defaultdict
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
@@ -126,6 +126,7 @@ class DNSClassify (EventMixin):
     for key, value in self.name_to_type.item():
         if key in name:
             types_poll[value] += 1
+            continue
 
         #pattern=key
         #matches=re.match(pattern, name)
