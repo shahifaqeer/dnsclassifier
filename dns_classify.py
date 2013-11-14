@@ -33,7 +33,6 @@ mappings are updated.
 Similar to NOX's DNSSpy component, but with more features.
 """
 import pickle as pkl
-#import re
 from collections import defaultdict
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
@@ -43,8 +42,9 @@ import pox.lib.packet.dns as pkt_dns
 from pox.lib.addresses import IPAddr
 from pox.lib.revent import *
 
-log = core.getLogger()
+from mapper import Mapper
 
+log = core.getLogger()
 
 class DNSUpdate (Event):
   def __init__ (self, item):
@@ -73,13 +73,15 @@ class DNSClassify (EventMixin):
   _eventMixin_events = set([ DNSUpdate, DNSLookup ])
 
   def __init__ (self, install_flow = True):
+    """
+    Parameters- kArgs should be filename
+    usage: DNSClassify(filename='dns_type_mappings.pkl')
+    """
     self._install_flow = install_flow
 
     self.ip_to_name = {}
     self.name_to_ip = {}
     self.cname = {}
-    # DNS to application type mapping should be read from offline pkl
-    self.name_to_type = pkl.load(open('dns_type_mappings.pkl', 'rb'))
 
     core.openflow.addListeners(self)
 
@@ -111,8 +113,9 @@ class DNSClassify (EventMixin):
     except:
       return None
 
-  def getType (self, name):
+  def getType (self, dnsname, DNS_SEARCH_REGEX=1):
     """for domain name return type
+    in main(): run getType(lookup(ip_address)) to get TYPE
 
     domain names are huge, but name_to_type table has shorter name
     so, iterate over all keys in name_to_type searching for a pattern
@@ -120,21 +123,10 @@ class DNSClassify (EventMixin):
 
     all matching types are counted and the type with max_votes is chosen."""
 
-    types_poll = defaultdict(int)
-    types_poll['UNKNOWN'] = 0
+    mapper = Mapper(DNS_SEARCH_REGEX)
+    name_type = mapper.searchType(dnsname)
 
-    for key, value in self.name_to_type.item():
-        if key in name:
-            types_poll[value] += 1
-            continue
-
-        #pattern=key
-        #matches=re.match(pattern, name)
-        #if matches != None:
-        #    # if match is found, increment counter of that TYPE
-        #    types_poll[self.name_to_type[key]]+=1
-
-    return max(types_poll, key=types_poll.get)
+    return name_type
 
   def _record (self, ip, name):
     # Handle reverse lookups correctly?
